@@ -7,33 +7,36 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * <p>Clase que servira para reprensentar al usuario dentro de la aplicacion</p>
+ * 
+ * @author vifergo
+ * @since v0.1
+ */
 public class User implements UserDetails {
 
 	private static final long serialVersionUID = -7911209679890839062L;
 
-	public static UserDetails create(String username, String password,
-			String...authorities) {
-		return new User(username, password, authorities);
-	}
-	
 	private final Collection<GrantedAuthority> authorities_;
 	private final String password_;
 	private final String username_;
+	
+	public static UserDetails create(String username, String password,	String...authorities) {
+		return new User(username, password, authorities);
+	}
 
 	@SuppressWarnings("unchecked")
 	private User(String username, String password) {
 		this(username, password, Collections.EMPTY_LIST);
 	}
 
-	private User(String username, String password,
-			String...authorities) {
+	private User(String username, String password, String...authorities) {
 		username_ = username;
 		password_ = password;
 		authorities_ = AuthorityUtils.createAuthorityList(authorities);
 	}
 
-	private User(String username, String password,
-			Collection<GrantedAuthority> authorities) {
+	private User(String username, String password,Collection<GrantedAuthority> authorities) {
 		super();
 		username_ = username;
 		password_ = password;

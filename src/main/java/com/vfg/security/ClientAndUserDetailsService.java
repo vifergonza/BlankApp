@@ -9,13 +9,13 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 
 /**
- * A class that combines a UserDetailsService and ClientDetailsService
- * into a single object.
+ * <p>Unificamos en una sola clase los servicios que nos permitiran acceder a los detalles
+ * del usuario y del cliente que realiza peticiones en nombre del usuario.</p>
  * 
- * @author jules
- *
+ * @author vifergo
+ * @since v0.1
  */
-public class ClientAndUserDetails implements UserDetailsService, ClientDetailsService {
+public class ClientAndUserDetailsService implements UserDetailsService, ClientDetailsService {
 
 	private final ClientDetailsService clients_;
 
@@ -23,7 +23,7 @@ public class ClientAndUserDetails implements UserDetailsService, ClientDetailsSe
 	
 	private final ClientDetailsUserDetailsService clientDetailsWrapper_;
 
-	public ClientAndUserDetails(ClientDetailsService clients, UserDetailsService users) {
+	public ClientAndUserDetailsService(ClientDetailsService clients, UserDetailsService users) {
 		super();
 		clients_ = clients;
 		users_ = users;

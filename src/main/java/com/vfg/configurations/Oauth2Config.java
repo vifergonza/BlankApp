@@ -25,15 +25,20 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import com.vfg.security.ClientAndUserDetails;
+import com.vfg.security.ClientAndUserDetailsService;
 import com.vfg.security.User;
 
 @Configuration
 public class Oauth2Config {
 
-	// This first section of the configuration just makes sure that Spring
-	// Security picks
-	// up the UserDetailsService that we create below.
+	/**
+	 * <p>Configuramos Spring Security para que use el UserDetailsService que 
+	 * crearemos mas adelante.</p>
+	 * 	
+	 * @author vifergo
+	 * @since v0.1
+	 *
+	 */
 	@Configuration
 	@EnableWebSecurity
 	protected static class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -55,39 +60,48 @@ public class Oauth2Config {
 	}
 
 	/**
-	 * This method is used to configure who is allowed to access which parts of
-	 * our resource server (i.e. the "/video" endpoint)
+	 * <p>Configuramos la aplicacion como servidor de recursos.</p>
+	 * 
+	 * <p>Desde aqui configuraremos, entre otras cosas, los permisos de acceso a los recursos
+	 * en funcion de las rutas. Dado que tratamos de construir un servicio REST deberemos
+	 * prestar atencion especial a los permisos que damos a metodos como POST, PUT y DELETE</p> 	
+	 * 
+	 * @author vifergo
+	 * @since v0.1
+	 *
 	 */
 	@Configuration
 	@EnableResourceServer
 	protected static class ResourceServer extends ResourceServerConfigurerAdapter {
 
-		// This method configures the OAuth scopes required by clients to access
-		// all of the paths in the video service.
+
 		@Override
 		public void configure(HttpSecurity http) throws Exception {
-
+			// CSRF es un token de proteccion para accesos web.
+			// Habra que activarlo si queremos usar terceros como autenticadores
+			// (facebook, twitter, google)
 			http.csrf().disable();
 
+			// Permitimos acceso anonimo a la solicitud de tokens
 			http.authorizeRequests().antMatchers("/oauth/token").anonymous();
-			http.authorizeRequests().antMatchers("/about*/**").permitAll();
+			
+			// Permitimos acceso libre al recurso "about" y todos sus descendientes
+			http.authorizeRequests().antMatchers("/about/**").permitAll();
 
-			// If you were going to reuse this class in another
-			// application, this is one of the key sections that you
-			// would want to change
+			// Exigimos que cualquier peticion get tenga el scope 'read'
+			http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").access("#oauth2.hasScope('read')");
 
-			// Require all GET requests to have client "read" scope
-			http.authorizeRequests().antMatchers(HttpMethod.GET, "/**")
-			        .access("#oauth2.hasScope('read')");
-
-			// Require all other requests to have "write" scope
+			// Exigimos que cualquier peticion que no encaje con los parametros anteriores 
+			//tenga el scope write
 			http.authorizeRequests().antMatchers("/**").access("#oauth2.hasScope('write')");
 
 		}
 
 		/**
-		 * This class is used to configure how our authorization server (the
-		 * "/oauth/token" endpoint) validates client credentials.
+		 * <p>Configuramos la aplicacion con servidor de autenticacion Oauth2</p>
+		 * 
+		 * @author vifergo
+		 * @since v0.1
 		 */
 		@Configuration
 		@EnableAuthorizationServer
@@ -98,99 +112,85 @@ public class Oauth2Config {
 			@Qualifier("authenticationManagerBean")
 			private AuthenticationManager authenticationManager;
 			
-			// A data structure used to store both a ClientDetailsService and a
-			// UserDetailsService
-			private ClientAndUserDetails combinedService_;
+			/**
+			 * Servidor de detalles de usuario y de cliente por el que se conecta el usuario.
+			 * 
+			 * TODO Separar en dos clases independientes
+			 */
+			private ClientAndUserDetailsService clientUserDetailService;
 
 			/**
+			 * <p> Incializamos OAuth2 </p>
+			 * <p> Como punto de partida harcodeamos los usuarios y los clientes, 
+			 * pero esto no deberia hacerse asi jamas.<p>
 			 * 
-			 * This constructor is used to setup the clients and users that will
-			 * be able to login to the system. This is a VERY insecure setup
-			 * that is using hard-coded lists of clients / users / passwords and
-			 * should never be used for anything other than local testing on a
-			 * machine that is not accessible via the Internet. Even if you use
-			 * this code for testing, at the bare minimum, you should consider
-			 * changing the passwords listed below and updating the
-			 * VideoSvcClientApiTest.
+			 * TODO sacar a base de datos los clientes y usuarios.
 			 * 
 			 * @param auth
 			 * @throws Exception
 			 */
 			public OAuth2Config() throws Exception {
 
-				// If you were going to reuse this class in another
-				// application, this is one of the key sections that you
-				// would want to change
-
-				// Create a service that has the credentials for all our clients
+				// Servicio que nos permite recuperarlas credenciales de los clientes autorizados
+				// para acceder a nuestros recursos.
 				ClientDetailsService csvc = new InMemoryClientDetailsServiceBuilder()
-				        // Create a client that has "read" and "write" access to
-						// the
-				        // video service
-				        .withClient("mobile")
+				        .withClient("blankClient")
 				        .authorizedGrantTypes("password")
 				        .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
+				        // podemos definir los alcances que queramos
 				        .scopes("read", "write")
 				        .and()
-				        // Create a second client that only has "read" access to
-						// the
-				        // video service
-				        .withClient("mobileReader").authorizedGrantTypes("password")
-				        .authorities("ROLE_CLIENT").scopes("read").accessTokenValiditySeconds(3600)
+				        // el segundo servicio tendra menos alcance
+				        .withClient("blankReader")
+				        .authorizedGrantTypes("password")
+				        .authorities("ROLE_CLIENT").scopes("read")
+				        .accessTokenValiditySeconds(3600)
 				        .and().build();
 
-				// Create a series of hard-coded users.
+				// Creamos una serie de usuarios con sus correspondientes roles
+				// los roles tambien los creamos segun nuestras necesidades
 				UserDetailsService svc = new InMemoryUserDetailsManager(Arrays.asList(
 				        User.create("admin", "pass", "ADMIN", "USER"),
-				        User.create("user0", "pass", "USER"), User.create("user1", "pass", "USER"),
-				        User.create("user2", "pass", "USER"), User.create("user3", "pass", "USER"),
-				        User.create("user4", "pass", "USER"), User.create("user5", "pass", "USER")));
+				        User.create("user0", "pass", "USER"), 
+				        User.create("user1", "pass", "USER"),
+				        User.create("user2", "pass", "USER"),
+				        User.create("user3", "pass", "USER"),
+				        User.create("user4", "pass", "USER"),
+				        User.create("user5", "pass", "USER")));
 
-				// Since clients have to use BASIC authentication with the
-				// client's id/secret,
-				// when sending a request for a password grant, we make each
-				// client a user
-				// as well. When the BASIC authentication information is pulled
-				// from the
-				// request, this combined UserDetailsService will authenticate
-				// that the
-				// client is a valid "user".
-				combinedService_ = new ClientAndUserDetails(csvc, svc);
+				clientUserDetailService = new ClientAndUserDetailsService(csvc, svc);
 			}
 
 			/**
-			 * Return the list of trusted client information to anyone who asks
-			 * for it.
+			 * Nos da acceso a los detalles de todos los clientes autorizados a acceder la aplicacion.
+			 * @return ClientDetailsService
 			 */
 			@Bean
 			public ClientDetailsService clientDetailsService() throws Exception {
-				return combinedService_;
+				return clientUserDetailService;
 			}
 
 			/**
-			 * Return all of our user information to anyone in the framework who
-			 * requests it.
+			 * Nos da acceso a los detalles de todos los usuarios de la aplicacion.
+			 * @return UserDetailsService 
 			 */
 			@Bean
 			public UserDetailsService userDetailsService() {
-				return combinedService_;
+				return clientUserDetailService;
 			}
 
 			/**
-			 * This method tells our AuthorizationServerConfigurerAdapter to use
-			 * the delegated AuthenticationManager to process authentication
-			 * requests.
+			 * Indicamos al AuthorizationServerConfigurerAdapter que use AuhtenticationManager
+			 * para procesar las peticiones de autenticacion.
 			 */
 			@Override
-			public void configure(AuthorizationServerEndpointsConfigurer endpoints)
-			        throws Exception {
+			public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 				endpoints.authenticationManager(authenticationManager);
 			}
 
 			/**
-			 * This method tells the AuthorizationServerConfigurerAdapter to use
-			 * our self-defined client details service to authenticate clients
-			 * with.
+			 * Indicamos al AuthorizationServerConfigurerAdapter que use nuestro servidor
+			 * de detales para autenticar a los clientes.
 			 */
 			@Override
 			public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
