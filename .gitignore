@@ -1,0 +1,15 @@
+# Eclipse IDE: Archivos de configuracion
+.classpath
+.project
+.settings/
+
+# Class Files #
+*.class
+target/*
+
+# Package Files #
+*.jar
+!war/WEB-INF/lib/*.jar
+*.war
+*.ear
+/target/
