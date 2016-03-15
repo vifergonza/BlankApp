@@ -1,4 +1,4 @@
-package com.vfg.security;
+package com.vfg.repository;
 
 import java.util.Collection;
 import java.util.Collections;

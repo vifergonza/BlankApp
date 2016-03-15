@@ -1,4 +1,4 @@
-package com.vfg.security;
+package com.vfg.services;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

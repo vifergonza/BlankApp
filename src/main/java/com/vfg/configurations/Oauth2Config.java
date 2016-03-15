@@ -25,8 +25,9 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import com.vfg.security.ClientAndUserDetailsService;
-import com.vfg.security.User;
+import com.vfg.repository.User;
+import com.vfg.services.ClientAndUserDetailsService;
+import com.vfg.services.UserService;
 
 @Configuration
 public class Oauth2Config {
@@ -87,13 +88,17 @@ public class Oauth2Config {
 			
 			// Permitimos acceso libre al recurso "about" y todos sus descendientes
 			http.authorizeRequests().antMatchers("/about/**").permitAll();
+			
+			//autorizamos todos los get de momento
+			http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").anonymous();
 
+			
 			// Exigimos que cualquier peticion get tenga el scope 'read'
-			http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").access("#oauth2.hasScope('read')");
+//			http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").access("#oauth2.hasScope('read')");
 
 			// Exigimos que cualquier peticion que no encaje con los parametros anteriores 
 			//tenga el scope write
-			http.authorizeRequests().antMatchers("/**").access("#oauth2.hasScope('write')");
+//			http.authorizeRequests().antMatchers("/**").access("#oauth2.hasScope('write')");
 
 		}
 
@@ -112,6 +117,9 @@ public class Oauth2Config {
 			@Qualifier("authenticationManagerBean")
 			private AuthenticationManager authenticationManager;
 			
+			@Autowired
+			private UserService userService;
+			
 			/**
 			 * Servidor de detalles de usuario y de cliente por el que se conecta el usuario.
 			 * 
@@ -124,26 +132,30 @@ public class Oauth2Config {
 			 * <p> Como punto de partida harcodeamos los usuarios y los clientes, 
 			 * pero esto no deberia hacerse asi jamas.<p>
 			 * 
+			 * <p> Vamos a definir dos alcances: </p>
+			 * <ul>
+			 * 	<li><b>admin-scope</p> tendra acceso a la administracion de usuarios</li>
+			 * 	<li><b>user-scope</p> tendra acceso a los items</li>
+			 * </ul>
+			 * 
 			 * TODO sacar a base de datos los clientes y usuarios.
 			 * 
 			 * @param auth
 			 * @throws Exception
 			 */
 			public OAuth2Config() throws Exception {
-
 				// Servicio que nos permite recuperarlas credenciales de los clientes autorizados
 				// para acceder a nuestros recursos.
 				ClientDetailsService csvc = new InMemoryClientDetailsServiceBuilder()
-				        .withClient("blankClient")
+				        .withClient("blankClient_admin")
 				        .authorizedGrantTypes("password")
 				        .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
-				        // podemos definir los alcances que queramos
-				        .scopes("read", "write")
+				        .scopes("admin-scope", "user-scope")
 				        .and()
-				        // el segundo servicio tendra menos alcance
-				        .withClient("blankReader")
+				        .withClient("blankReader_user")
 				        .authorizedGrantTypes("password")
-				        .authorities("ROLE_CLIENT").scopes("read")
+				        .authorities("ROLE_CLIENT")
+				        .scopes("user-scope")
 				        .accessTokenValiditySeconds(3600)
 				        .and().build();
 
