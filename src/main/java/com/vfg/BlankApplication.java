@@ -13,11 +13,11 @@ import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguratio
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.vfg.configurations.Oauth2Config;
-import com.vfg.repository.UserBlankRepository;
+import com.vfg.repository.UserRepository;
 import com.vfg.services.UserService;
 
 @EnableAutoConfiguration
-@EnableJpaRepositories(basePackageClasses = UserBlankRepository.class)
+@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 @EnableWebMvc
 @Configuration
 @Import(Oauth2Config.class)

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vfg.repository.UserBlank;
+import com.vfg.repository.User;
 import com.vfg.services.UserService;
 
 @RequestMapping("/user")
@@ -21,7 +21,7 @@ public class UserController {
 	private UserService userService;
 	
 	@RequestMapping(method = RequestMethod.GET)
-	public Collection<UserBlank> userList() {
+	public Collection<User> userList() {
 		return userService.findUsers();
 	}
 	

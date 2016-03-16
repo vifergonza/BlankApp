@@ -6,8 +6,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserBlankRepository extends CrudRepository<UserBlank, Long>{
+public interface UserRepository extends CrudRepository<User, Long>{
 
-	public Collection<UserBlank> findByUsername(String username);
+	public Collection<User> findByUsername(String username);
 	
 }

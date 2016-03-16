@@ -1,7 +1,5 @@
 package com.vfg.configurations;
 
-import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -23,18 +21,14 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import com.vfg.repository.User;
-import com.vfg.services.ClientAndUserDetailsService;
 import com.vfg.services.UserService;
 
 @Configuration
 public class Oauth2Config {
 
 	/**
-	 * <p>Configuramos Spring Security para que use el UserDetailsService que 
-	 * crearemos mas adelante.</p>
+	 * <p>Configuramos Spring Security para que use el nuestro UserService</p>
 	 * 	
 	 * @author vifergo
 	 * @since v0.1
@@ -45,8 +39,8 @@ public class Oauth2Config {
 	protected static class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		@Autowired
-		private UserDetailsService userDetailsService;
-
+		private UserService customUserService;
+		
 	    @Override
 	    @Bean
 	    public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -55,7 +49,7 @@ public class Oauth2Config {
 		
 		@Override
 		protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-			auth.userDetailsService(userDetailsService);
+			auth.userDetailsService(customUserService);
 		}
 		
 	}
@@ -118,14 +112,13 @@ public class Oauth2Config {
 			private AuthenticationManager authenticationManager;
 			
 			@Autowired
-			private UserService userService;
+			private UserService customUserService;
 			
 			/**
-			 * Servidor de detalles de usuario y de cliente por el que se conecta el usuario.
-			 * 
-			 * TODO Separar en dos clases independientes
+			 * Servidor de detalles de los clientes que pueden acceder a nuestro
+			 * servidor rest.
 			 */
-			private ClientAndUserDetailsService clientUserDetailService;
+			private ClientDetailsService customClientDetailsService;
 
 			/**
 			 * <p> Incializamos OAuth2 </p>
@@ -138,39 +131,24 @@ public class Oauth2Config {
 			 * 	<li><b>user-scope</p> tendra acceso a los items</li>
 			 * </ul>
 			 * 
-			 * TODO sacar a base de datos los clientes y usuarios.
-			 * 
 			 * @param auth
 			 * @throws Exception
 			 */
 			public OAuth2Config() throws Exception {
 				// Servicio que nos permite recuperarlas credenciales de los clientes autorizados
 				// para acceder a nuestros recursos.
-				ClientDetailsService csvc = new InMemoryClientDetailsServiceBuilder()
+				customClientDetailsService = new InMemoryClientDetailsServiceBuilder()
 				        .withClient("blankClient_admin")
 				        .authorizedGrantTypes("password")
 				        .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
 				        .scopes("admin-scope", "user-scope")
-				        .and()
+				       .and()
 				        .withClient("blankReader_user")
 				        .authorizedGrantTypes("password")
 				        .authorities("ROLE_CLIENT")
 				        .scopes("user-scope")
 				        .accessTokenValiditySeconds(3600)
 				        .and().build();
-
-				// Creamos una serie de usuarios con sus correspondientes roles
-				// los roles tambien los creamos segun nuestras necesidades
-				UserDetailsService svc = new InMemoryUserDetailsManager(Arrays.asList(
-				        User.create("admin", "pass", "ADMIN", "USER"),
-				        User.create("user0", "pass", "USER"), 
-				        User.create("user1", "pass", "USER"),
-				        User.create("user2", "pass", "USER"),
-				        User.create("user3", "pass", "USER"),
-				        User.create("user4", "pass", "USER"),
-				        User.create("user5", "pass", "USER")));
-
-				clientUserDetailService = new ClientAndUserDetailsService(csvc, svc);
 			}
 
 			/**
@@ -179,7 +157,7 @@ public class Oauth2Config {
 			 */
 			@Bean
 			public ClientDetailsService clientDetailsService() throws Exception {
-				return clientUserDetailService;
+				return customClientDetailsService;
 			}
 
 			/**
@@ -188,7 +166,7 @@ public class Oauth2Config {
 			 */
 			@Bean
 			public UserDetailsService userDetailsService() {
-				return clientUserDetailService;
+				return customUserService;
 			}
 
 			/**
