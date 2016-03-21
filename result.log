@@ -1,0 +1,23 @@
+[H[2J
+-------------------------------------------------------------------------------
+
+curl vfg...
+{"access_token":"f21c8e52-0d86-4b8e-8709-2895baf58e9a","token_type":"bearer","expires_in":43140,"scope":"admin-scope user-scope"}
+-------------------------------------------------------------------------------
+
+curl user...
+{"error":"invalid_grant","error_description":"User account has expired"}
+-------------------------------------------------------------------------------
+
+curl editor...
+{"error":"invalid_grant","error_description":"User account is locked"}
+-------------------------------------------------------------------------------
+
+curl user2..
+{"error":"invalid_grant","error_description":"User account is locked"}
+-------------------------------------------------------------------------------
+
+curl user3..
+{"access_token":"dbb462c7-baca-4308-91af-c74f74f7ba7e","token_type":"bearer","expires_in":43141,"scope":"admin-scope user-scope"}
+-------------------------------------------------------------------------------
+

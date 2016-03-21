@@ -5,9 +5,23 @@ import java.util.Collection;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface UserRepository extends CrudRepository<User, Long>{
+import com.vfg.repository.entities.User;
 
-	public Collection<User> findByUsername(String username);
-	
+/**
+ * Repositorio de acceso a datos sobre usuarios.
+ *
+ * @author vifergo
+ * @since v0.1
+ */
+@Repository
+public interface UserRepository extends CrudRepository<User, Long> {
+
+    /**
+     * Busca usuario por el valor de username.
+     *
+     * @param username a buscar en los usuarios.
+     * @return Colecion de usuarios con ese username.
+     */
+    Collection<User> findByUsername(String username);
+
 }
