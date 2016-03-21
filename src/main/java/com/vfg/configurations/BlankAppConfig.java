@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.config.annotation.builders.InMemoryClientDetailsServiceBuilder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -23,6 +22,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 
 import com.vfg.security.CustomPasswordEncoder;
+import com.vfg.services.ClientOAuth2DetailsServiceI;
 import com.vfg.services.UserServiceI;
 
 /**
@@ -144,42 +144,35 @@ public class BlankAppConfig {
             private AuthenticationManager authenticationManager;
 
             /**
-             * Servicio de usuarios.
+             * Servicio de usuarios propio de la aplicacion.
              */
             @Autowired
             private UserServiceI customUserService;
 
             /**
-             * Servidor de detalles de los clientes que pueden acceder a nuestro
-             * servidor rest.
-             */
-            private ClientDetailsService customClientDetailsService;
-
-            /**
-             * <p>Incializamos OAuth2.</p>
-             * <p>Como punto de partida harcodeamos los clientes,
-             * pero esto no deberia hacerse asi jamas.<p>
+             * Este bean es cargado por spring security para acceder al servicio de usuarios.
+             * Al sobreescribirlo le indicamos que use el que definimos nosotros y no el servicio
+             * por defecto.
              *
-             * <p>Vamos a definir dos alcances:</p>
-             * <ul>
-             * <li><b>admin-scope</b> tendra acceso a la administracion de usuarios.</li>
-             * <li><b>user-scope</b> tendra acceso a los items.</li>
-             * </ul>
-             *
-             * @throws Exception en caso de errores en la creacion del client service.
+             * @return UserDetailsService Nos da acceso a los detalles de todos los usuarios de la aplicacion.
              */
-            public OAuth2Config() throws Exception {
-                // Servicio que nos permite recuperarlas credenciales de los
-                // clientes autorizados
-                // para acceder a nuestros recursos.
-                customClientDetailsService = new InMemoryClientDetailsServiceBuilder().withClient("blankClient_admin")
-                        .authorizedGrantTypes("password").authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
-                        .scopes("admin-scope", "user-scope").and().withClient("blankReader_user")
-                        .authorizedGrantTypes("password").authorities("ROLE_CLIENT").scopes("user-scope")
-                        .accessTokenValiditySeconds(3600).and().build();
+            @Bean
+            public UserDetailsService userDetailsService() {
+                return customUserService;
             }
 
             /**
+             * Servidor de detalles de los clientes que pueden acceder a nuestro
+             * servidor protegido por OAuth2.
+             */
+            @Autowired
+            private ClientOAuth2DetailsServiceI customClientDetailsService;
+
+            /**
+             * Este bean es cargado por spring security para acceder al servicio de clientes.
+             * Al sobreescribirlo le indicamos que use el que definimos nosotros y no el servicio
+             * por defecto.
+             *
              * @return ClientDetailsService Nos da acceso a los detalles de todos los
              *                              clientes autorizados a acceder la aplicacion.
              *
@@ -188,14 +181,6 @@ public class BlankAppConfig {
             @Bean
             public ClientDetailsService clientDetailsService() throws Exception {
                 return customClientDetailsService;
-            }
-
-            /**
-             * @return UserDetailsService Nos da acceso a los detalles de todos los usuarios de la aplicacion.
-             */
-            @Bean
-            public UserDetailsService userDetailsService() {
-                return customUserService;
             }
 
             /**
