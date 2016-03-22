@@ -1,13 +1,12 @@
 package com.vfg.controllers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.vfg.dtos.AboutResponseDto;
 
 /**
  * Contiene peticiones relativas a metadatos de la aplicacion.
@@ -52,14 +51,15 @@ public class AboutController {
      * @return Informacion relativa al autor y la version de la aplicacion.
      */
     @RequestMapping(method = RequestMethod.GET)
-    public final Map<String, Object> about() {
+    public final AboutResponseDto about() {
         log.debug("/about GET");
-        Map<String, Object> model = new HashMap<String, Object>();
-        model.put("author", author);
-        model.put("mail", mail);
-        model.put("twitter", twitter);
-        model.put("version", version);
-        return model;
+
+        final AboutResponseDto response = new AboutResponseDto();
+        response.setAuthor(author);
+        response.setMail(mail);
+        response.setTwitter(twitter);
+        response.setVersion(version);
+        return response;
     }
 
 }

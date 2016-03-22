@@ -29,6 +29,7 @@ public class ClientOAuth2DetailsServiceImpl implements ClientOAuth2DetailsServic
     public ClientOAuth2DetailsServiceImpl() throws Exception {
         internalClientDetailsService = new InMemoryClientDetailsServiceBuilder()
             .withClient("blankClient_admin")
+                .secret("admin_blankClient")
                 .authorizedGrantTypes(OAuth2ClientConstants.AuthorizedGrantTypes.PASSWORD.getType())
                 .authorities(OAuth2ClientConstants.Authority.ROLE_CLIENT.getAuthority(),
                         OAuth2ClientConstants.Authority.ROLE_TRUSTED_CLIENT.getAuthority())
@@ -36,6 +37,7 @@ public class ClientOAuth2DetailsServiceImpl implements ClientOAuth2DetailsServic
                         OAuth2ClientConstants.Scopes.USER_SCOPE.getScope())
             .and()
             .withClient("blankReader_user")
+                .secret("user_blankReader")
                 .authorizedGrantTypes(OAuth2ClientConstants.AuthorizedGrantTypes.PASSWORD.getType())
                 .authorities(OAuth2ClientConstants.Authority.ROLE_CLIENT.getAuthority())
                 .scopes(OAuth2ClientConstants.Scopes.USER_SCOPE.getScope())
