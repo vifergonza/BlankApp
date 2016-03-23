@@ -28,6 +28,8 @@ public class ClientOAuth2DetailsServiceImpl implements ClientOAuth2DetailsServic
      */
     public ClientOAuth2DetailsServiceImpl() throws Exception {
         internalClientDetailsService = new InMemoryClientDetailsServiceBuilder()
+            // Creamos un cliente administrador. El grant type password nos obliga a usarlo
+            // siempre con un usuario y contraseña.
             .withClient("blankClient_admin")
                 .secret("admin_blankClient")
                 .authorizedGrantTypes(OAuth2ClientConstants.AuthorizedGrantTypes.PASSWORD.getType())
@@ -36,9 +38,12 @@ public class ClientOAuth2DetailsServiceImpl implements ClientOAuth2DetailsServic
                 .scopes(OAuth2ClientConstants.Scopes.ADMIN_SCOPE.getScope(),
                         OAuth2ClientConstants.Scopes.USER_SCOPE.getScope())
             .and()
+            // Creamos un cliente solo lectura. Añadimos el grant type client_credentials para
+            // permitir el acceso de ese cliente sin usuario.
             .withClient("blankReader_user")
                 .secret("user_blankReader")
-                .authorizedGrantTypes(OAuth2ClientConstants.AuthorizedGrantTypes.PASSWORD.getType())
+                .authorizedGrantTypes(OAuth2ClientConstants.AuthorizedGrantTypes.PASSWORD.getType(),
+                        OAuth2ClientConstants.AuthorizedGrantTypes.CLIENT_CREDENTIALS.getType())
                 .authorities(OAuth2ClientConstants.Authority.ROLE_CLIENT.getAuthority())
                 .scopes(OAuth2ClientConstants.Scopes.USER_SCOPE.getScope())
                 .accessTokenValiditySeconds(OAuth2ClientConstants.ACCESS_TOKEN_VALIDITY_SECONDS)

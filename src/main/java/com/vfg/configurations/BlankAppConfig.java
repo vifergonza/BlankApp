@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 
 import com.vfg.security.CustomPasswordEncoder;
+import com.vfg.security.OAuth2ClientConstants;
 import com.vfg.services.ClientOAuth2DetailsServiceI;
 import com.vfg.services.UserServiceI;
 
@@ -97,6 +98,9 @@ public class BlankAppConfig {
 
         /**
          * {@inheritDoc}
+         *
+         * Realizamos una configuración bastante generica de la seguridad de cada recurso.
+         * El filtrado mas fino se realizará en los propios servicios.
          */
         @Override
         public final void configure(final HttpSecurity http) throws Exception {
@@ -105,24 +109,18 @@ public class BlankAppConfig {
             // (facebook, twitter, google)
             http.csrf().disable();
 
-            // Permitimos acceso anonimo a la solicitud de tokens
+            // Permitimos acceso anonimo a la solicitud de tokens.
             http.authorizeRequests().antMatchers("/oauth/token").anonymous();
 
-            // Permitimos acceso libre al recurso "about" y todos sus
-            // descendientes
-            http.authorizeRequests().antMatchers("/about/**").permitAll();
+            // Exigimos que cualquier peticion get tenga el scope de cliente normal.
+            http.authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/**")
+                    .access("#oauth2.hasScope('" + OAuth2ClientConstants.Scopes.USER_SCOPE.getScope() + "')");
 
-            // autorizamos todos los get de momento
-            http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").anonymous();
-
-            // Exigimos que cualquier peticion get tenga el scope 'read'
-            // http.authorizeRequests().antMatchers(HttpMethod.GET,
-            // "/**").access("#oauth2.hasScope('read')");
-
-            // Exigimos que cualquier peticion que no encaje con los parametros
-            // anteriores
-            // tenga el scope write
-            // http.authorizeRequests().antMatchers("/**").access("#oauth2.hasScope('write')");
+            // El resto de peticiones necesitaran el scope administrador.
+            http.authorizeRequests()
+                .antMatchers("/**")
+                    .access("#oauth2.hasScope('" + OAuth2ClientConstants.Scopes.ADMIN_SCOPE.getScope() + "')");
         }
 
         /**
