@@ -8,9 +8,9 @@
 * Log4j
 * Junit
 
-Este es el proyecto básico a partir del cual construir servicios REST protegido con el protocolo **OAuth2**. Este proyecto se centra en el lado del servidor y no incluye la implementación de ningún cliente. Creo que es la mejor forma de comprender el concepto de servicio REST puro, de esta forma evitamos que nuestro subconsciente nos manipule y hagamos concesiones pensando en las arquitecturas que se conectarán a él.
+Este es un proyecto básico a partir del cual construir servicios REST protegido con el protocolo **OAuth2**. El proyecto se centra en el lado del servidor y no incluye la implementación de ningún cliente. Creo que es la mejor forma de comprender el concepto de servicio REST puro, de esta forma evitamos que nuestro subconsciente nos manipule y hagamos concesiones pensando en las arquitecturas que se conectarán a él.
 
-Este proyecto es al tiempo servidor de recursos y servidor de autorizaciones. La configuracion de ambos aspectos se encuentra en el fichero **BlankAppConfig**.
+La aplicación es al tiempo servidor de recursos y servidor de autorizaciones. La configuracion de ambos aspectos se encuentra en el fichero **BlankAppConfig**.
 
 ## Servidor de autenticaciones
 
@@ -35,26 +35,11 @@ Con estas dos simples restricciones bloqueamos el acceso a nuestros recursos a c
 
 La seguridad mas "fina", la especifica de cada funcionalidad segun roles y contenido solicitado se hará en cada servicio mediante anotaciones _@PreAuthorize_ y _@PostAuthorize_
 
-
 ## Definicion de clientes
 
------------------------------------------------------
+La configuración de los clientes se realiza en el servicio _ClientOAuth2DetailsServiceImpl_.
+A la hora de definir un cliente, a parte del identificador y la contraseña (_secret_) es muy importante definir los **GRANT_TYPES** (los modos en los que el cliente interactuará con el servidor OAuth2) y los **SCOPES** (o ambitos de acceso). Los _GRANT_TYPE_ son cuatro y estan definidos por el estándar de OAuth2. Sin embargo los _SCOPES_ (al igual que los roles de usuario) son definidos por nosotros en función de los requerimientos de nuestro proyecto.
 
-## Formatos admitidos en las peticiones
-Ambos métodos aceptan el envío de datos en varios formatos seleccionable mediante *Headers*:
+Inicialmente creamos dos ámbitos uno de lectura y otro de control total. Esto nos permite crear clientes que sólo puedan leer nuestros recursos y clientes que puedan leer y escribir en nuestro servidor. También sería posible crear ambitos que permitiesen sólo permitiesen acceder a determinadas URLs de la aplicación y multitud de combinaciones más.
 
-* **Content-type: application/x-www-form-urlencoded** si enviamos los datos dentro del *body* de la petición http. El formato será *param=valor1&param2=valor2*.
-* **Content-type: application/json** si enviamos los datos dentro del *body* de la petición http en formato *json*. Por ejemplo *{"param":"valor1", "param2":"valor2"}*.
-* **Content-type: application/xml** si enviamos los datos dentro del *body* de la petición http en formato *xml*. Por ejemplo *<nodo><param>valor1</param><param2>valor2</param2></nodo>*. Para que esto funcione correctamente, las clases recibidas por el servicio deben estar debidamente anotadas. Ver *RequestDto.java*.
-
-## Formatos admitidos en las respuestas
-Podemos elegir el formato en el cual el servidor nos retorna los datos, también mediante *Headers*:
-
-* **Accept: application/json** para que el servidor nos retorne la información en *json*.
-* **Accept: application/xml** para que el servidor nos retorne la información en *xml*. Para que esto funcione correctamente, las clases retornadas por el servicio deben estar debidamente anotadas. Ver *ResponseDto.java*.
-
-## Seleccion de idioma
-Tambien podemos establecer el idioma en el que queremos que el servidor nos responda mediante la cabecera *Accept-Language: en*
-
-###### Otros datos
-En el fichero *pruebasRest.sh* hay una bateria de pruebas *curl* con las cabeceras comentadas anteriormente.
+Por último comentar que, aunque veamos que los clientes estan _hardcodeados_, podrián estar perfectamente en la base de datos (al igual que los usuarios) y permitir la creación de nuevos clientes a través de la propia aplicación.
