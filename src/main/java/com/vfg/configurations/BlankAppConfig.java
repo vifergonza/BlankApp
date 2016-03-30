@@ -197,7 +197,7 @@ public class BlankAppConfig {
              * {@docRoot}
              *
              * Indicamos al AuthorizationServerConfigurerAdapter que use nuestro
-             * servidor de detales para autenticar a los clientes.
+             * servidor de detalles para autenticar a los clientes.
              */
             @Override
             public final void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
